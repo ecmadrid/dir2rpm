@@ -1,0 +1,20 @@
+[Desktop Entry]
+Name=dir2rpm
+Comment=Create binary RPMs from a directory with a graphical interface
+Name[es]=dir2rpm
+Name[fr]=dir2rpm
+Name[de]=dir2rpm
+Name[it]=dir2rpm
+Name[pt]=dir2rpm
+Name[ru]=dir2rpm
+Comment[es]=Crea RPMs binarios desde un directorio con una interfaz gráfica
+Comment[fr]=Créez des RPM binaires à partir d'un répertoire avec une interface graphique
+Comment[de]=Erstellen Sie binäre RPMs aus einem Verzeichnis mit einer grafischen Oberfläche
+Comment[it]=Crea RPM binari da una directory con un'interfaccia grafica
+Comment[pt]=Crie RPMs binários a partir de um diretório com uma interface gráfica
+Comment[ru]=Создавайте бинарные RPM из каталога с графическим интерфейсом
+Exec=/usr/bin/python3 /usr/bin/dir2rpm_gui.py
+Icon=system-software-install
+Type=Application
+Terminal=false
+Categories=Development;Utility;
