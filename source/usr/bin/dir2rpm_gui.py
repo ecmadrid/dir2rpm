@@ -72,12 +72,12 @@ class Dir2RPMGUI(QMainWindow):
 
         # Summary
         self.summary_label = QLabel(QCoreApplication.translate("Dir2RPMGUI", "Summary:"))
-        self.summary_input = QLineEdit(QCoreApplication.translate("Dir2RPMGUI", "Binary package generated from directory"))
+        self.summary_input = QLineEdit(QCoreApplication.translate("Dir2RPMGUI", "Create an installable binary RPM package from a directory"))
         form_layout.addRow(self.summary_label, self.summary_input)
 
         # Description
         self.description_label = QLabel(QCoreApplication.translate("Dir2RPMGUI", "Description:"))
-        self.description_input = QTextEdit(QCoreApplication.translate("Dir2RPMGUI", "Binary package generated from directory"))
+        self.description_input = QTextEdit(QCoreApplication.translate("Dir2RPMGUI", "Create an installable binary RPM package from a directory"))
         form_layout.addRow(self.description_label, self.description_input)
 
         # License
