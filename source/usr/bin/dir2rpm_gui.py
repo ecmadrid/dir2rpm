@@ -36,7 +36,7 @@ class Dir2RPMGUI(QMainWindow):
     def initUI(self):
         self.setWindowTitle(QCoreApplication.translate("Dir2RPMGUI", "dir2rpm - Create RPMs Easily"))
         print(f"Title set to: {self.windowTitle()}")
-        self.setGeometry(100, 100, 600, 600)
+        self.setGeometry(100, 100, 600, 750)
 
         widget = QWidget()
         self.setCentralWidget(widget)
@@ -79,6 +79,21 @@ class Dir2RPMGUI(QMainWindow):
         self.description_label = QLabel(QCoreApplication.translate("Dir2RPMGUI", "Description:"))
         self.description_input = QTextEdit(QCoreApplication.translate("Dir2RPMGUI", "Binary package generated from directory"))
         form_layout.addRow(self.description_label, self.description_input)
+
+        # License
+        self.license_label = QLabel(QCoreApplication.translate("Dir2RPMGUI", "License:"))
+        self.license_input = QLineEdit("MIT")
+        form_layout.addRow(self.license_label, self.license_input)
+
+        # Arch
+        self.arch_label = QLabel(QCoreApplication.translate("Dir2RPMGUI", "Arch:"))
+        self.arch_input = QLineEdit("noarch")
+        form_layout.addRow(self.arch_label, self.arch_input)
+
+        # Vendor
+        self.vendor_label = QLabel(QCoreApplication.translate("Dir2RPMGUI", "Vendor:"))
+        self.vendor_input = QLineEdit("xAI")
+        form_layout.addRow(self.vendor_label, self.vendor_input)
 
         # Depends
         self.depends_label = QLabel(QCoreApplication.translate("Dir2RPMGUI", "Depends:"))
@@ -133,6 +148,9 @@ class Dir2RPMGUI(QMainWindow):
             f"Release: {self.release_input.text()}\n"
             f"Summary: {self.summary_input.text()}\n"
             f"Description:\n{self.description_input.toPlainText()}\n"
+            f"License: {self.license_input.text()}\n"
+            f"Arch: {self.arch_input.text()}\n"
+            f"Vendor: {self.vendor_input.text()}\n"
         )
         if self.depends_input.text():
             metadata += f"Depends: {self.depends_input.text()}\n"

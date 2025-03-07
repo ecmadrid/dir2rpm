@@ -18,6 +18,7 @@ RELEASE="1"
 SUMMARY="$(gettext "Binary package generated from directory")"
 LICENSE="MIT"
 ARCH="noarch"
+VENDOR="xAI"
 DESCRIPTION="$SUMMARY"
 DEPENDS=""
 
@@ -40,6 +41,7 @@ if [ -f "$METADATA_FILE" ]; then
     SUMMARY=$(grep -i "Summary:" "$METADATA_FILE" | cut -d: -f2- | sed 's/^ *//')
     LICENSE=$(grep -i "License:" "$METADATA_FILE" | cut -d: -f2- | sed 's/^ *//' || echo "MIT")
     ARCH=$(grep -i "Arch:" "$METADATA_FILE" | cut -d: -f2 | tr -d ' ' || echo "noarch")
+    VENDOR=$(grep -i "Vendor:" "$METADATA_FILE" | cut -d: -f2- | sed 's/^ *//' || echo "xAI")
     DESCRIPTION=$(awk '/Description:/{flag=1; next} flag{print} /^$/{flag=0}' "$METADATA_FILE" | sed 's/^  //')
     DEPENDS=$(grep -i "Depends:" "$METADATA_FILE" | cut -d: -f2- | sed 's/^ *//')
 fi
@@ -51,6 +53,7 @@ fi
 [ -z "$SUMMARY" ] && SUMMARY="$(gettext "Binary package generated from directory")"
 [ -z "$LICENSE" ] && LICENSE="MIT"
 [ -z "$ARCH" ] && ARCH="noarch"
+[ -z "$VENDOR" ] && VENDOR="xAI"
 [ -z "$DESCRIPTION" ] && DESCRIPTION="$SUMMARY"
 
 # Create a temporary BUILDROOT directory
@@ -99,6 +102,7 @@ Version: $VERSION
 Release: $RELEASE
 Summary: $SUMMARY
 License: $LICENSE
+Vendor: $VENDOR
 BuildArch: $ARCH
 $( [ -n "$DEPENDS" ] && echo "Requires: $DEPENDS" )
 

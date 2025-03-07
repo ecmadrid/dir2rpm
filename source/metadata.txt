@@ -6,3 +6,4 @@ License: MIT
 Arch: noarch
 Description: Crea un paquete rpm binarion instalable desde un directorio.
 Depends: bash, rpm-build, python3, python3-qt5
+Vendor: xAI & Juan Sánchez <contact@xanmian.com>
