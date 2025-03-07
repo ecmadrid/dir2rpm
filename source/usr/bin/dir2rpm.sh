@@ -1,11 +1,13 @@
 #!/bin/bash
 
-# dir2rpm: Creates a binary RPM from a directory
-# Usage: dir2rpm <directory>
+# Set up gettext for translations
+export TEXTDOMAIN=dir2rpm
+export TEXTDOMAINDIR=/usr/share/locale
 
 # Check if a directory is provided
 if [ -z "$1" ]; then
-    echo "Usage: $0 <directory>" >&2
+    echo "$(gettext "Usage"): $0 $(gettext "<directory>")" >&2
+    echo "" >&2
     exit 1
 fi
 
@@ -14,7 +16,7 @@ RPMBUILD_DIR="$HOME/rpmbuild"
 PACKAGE_NAME="mypackage"
 VERSION="1.0"
 RELEASE="1"
-SUMMARY="Binary package generated from directory"
+SUMMARY="$(gettext "Binary package generated from directory")"
 LICENSE="MIT"
 ARCH="noarch"
 DESCRIPTION="$SUMMARY"
@@ -22,7 +24,8 @@ DEPENDS=""
 
 # Check if the directory exists
 if [ ! -d "$INPUT_DIR" ]; then
-    echo "Error: Directory '$INPUT_DIR' does not exist" >&2
+    echo "$(gettext "Error: Directory") '$INPUT_DIR' $(gettext "does not exist")" >&2
+    echo "" >&2
     exit 1
 fi
 
@@ -46,7 +49,7 @@ fi
 [ -z "$PACKAGE_NAME" ] && PACKAGE_NAME="mypackage"
 [ -z "$VERSION" ] && VERSION="1.0"
 [ -z "$RELEASE" ] && RELEASE="1"
-[ -z "$SUMMARY" ] && SUMMARY="Binary package generated from directory"
+[ -z "$SUMMARY" ] && SUMMARY="$(gettext "Binary package generated from directory")"
 [ -z "$LICENSE" ] && LICENSE="MIT"
 [ -z "$ARCH" ] && ARCH="noarch"
 [ -z "$DESCRIPTION" ] && DESCRIPTION="$SUMMARY"
@@ -57,15 +60,12 @@ mkdir -p "$BUILDROOT"
 
 # Copy all files from input directory to BUILDROOT
 cp -r "$INPUT_DIR"/* "$BUILDROOT"/
-# Exclude metadata.txt and maintenance scripts if they exist
 for file in metadata.txt preinst postinst preun postun; do
     [ -f "$BUILDROOT/$file" ] && rm "$BUILDROOT/$file"
 done
 
-# Ensure executable permissions for binaries
 find "$BUILDROOT" -type f -path "*/bin/*" -exec chmod 755 {} \;
 
-# Detect maintenance scripts
 PREINST=""
 POSTINST=""
 PREUN=""
@@ -75,7 +75,6 @@ POSTUN=""
 [ -f "$INPUT_DIR/preun" ] && PREUN=$(cat "$INPUT_DIR/preun")
 [ -f "$INPUT_DIR/postun" ] && POSTUN=$(cat "$INPUT_DIR/postun")
 
-# Generate %files section dynamically with specific permissions
 FILES_SECTION=""
 if [ -n "$(ls -A "$BUILDROOT")" ]; then
     FILES_SECTION=$(find "$BUILDROOT" -type f | while read -r file; do
@@ -88,7 +87,6 @@ if [ -n "$(ls -A "$BUILDROOT")" ]; then
     done)
 fi
 
-# Create the .spec file
 SPEC_FILE="$RPMBUILD_DIR/SPECS/$PACKAGE_NAME.spec"
 cat << EOF > "$SPEC_FILE"
 Name: $PACKAGE_NAME
@@ -115,6 +113,8 @@ cp -r $BUILDROOT/* %{buildroot}/
 
 %files
 $FILES_SECTION
+/usr/share/locale/en_US/LC_MESSAGES/dir2rpm.mo
+/usr/share/locale/es_ES/LC_MESSAGES/dir2rpm.mo
 
 $( [ -n "$PREINST" ] && echo "%pre" && echo "$PREINST" )
 $( [ -n "$POSTINST" ] && echo "%post" && echo "$POSTINST" )
@@ -126,20 +126,17 @@ $( [ -n "$POSTUN" ] && echo "%postun" && echo "$POSTUN" )
 - Binary package generated automatically with GUI support
 EOF
 
-# Build the RPM
 rpmbuild -bb "$SPEC_FILE"
 
-# Move the generated RPM to the current directory
 RPM_FILE="$RPMBUILD_DIR/RPMS/$ARCH/$PACKAGE_NAME-$VERSION-$RELEASE.$ARCH.rpm"
 if [ -f "$RPM_FILE" ]; then
     mv "$RPM_FILE" .
-    echo "RPM created: $(basename "$RPM_FILE")"
+    echo "$(gettext "RPM created"): $(basename "$RPM_FILE")"
 else
-    echo "Error: Failed to create RPM" >&2
+    echo "$(gettext "Error: Failed to create RPM")" >&2
     exit 1
 fi
 
-# Cleanup
 rm -rf "$RPMBUILD_DIR/BUILDROOT" "$RPMBUILD_DIR/BUILD" "$RPMBUILD_DIR/SPECS/$PACKAGE_NAME.spec"
 
 exit 0
