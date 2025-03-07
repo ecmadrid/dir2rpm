@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# dir2rpm: Crea un RPM binario desde un directorio
-# Uso: dir2rpm <directorio>
+# dir2rpm: Creates a binary RPM from a directory
+# Usage: dir2rpm <directory>
 
-# Verifica que se pase un directorio
+# Check if a directory is provided
 if [ -z "$1" ]; then
-    echo "Uso: $0 <directorio>"
+    echo "Usage: $0 <directory>" >&2
     exit 1
 fi
 
@@ -14,22 +14,22 @@ RPMBUILD_DIR="$HOME/rpmbuild"
 PACKAGE_NAME="mypackage"
 VERSION="1.0"
 RELEASE="1"
-SUMMARY="Paquete binario generado desde directorio"
+SUMMARY="Binary package generated from directory"
 LICENSE="MIT"
 ARCH="noarch"
 DESCRIPTION="$SUMMARY"
 DEPENDS=""
 
-# Verifica que el directorio exista
+# Check if the directory exists
 if [ ! -d "$INPUT_DIR" ]; then
-    echo "Error: El directorio '$INPUT_DIR' no existe"
+    echo "Error: Directory '$INPUT_DIR' does not exist" >&2
     exit 1
 fi
 
-# Crea la estructura de rpmbuild si no existe
+# Create rpmbuild structure if it doesn't exist
 mkdir -p "$RPMBUILD_DIR"/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
 
-# Lee metadatos desde metadata.txt (si existe)
+# Read metadata from metadata.txt (if exists)
 METADATA_FILE="$INPUT_DIR/metadata.txt"
 if [ -f "$METADATA_FILE" ]; then
     PACKAGE_NAME=$(grep -i "Name:" "$METADATA_FILE" | cut -d: -f2 | tr -d ' ')
@@ -42,30 +42,30 @@ if [ -f "$METADATA_FILE" ]; then
     DEPENDS=$(grep -i "Depends:" "$METADATA_FILE" | cut -d: -f2- | sed 's/^ *//')
 fi
 
-# Usa valores por defecto si están vacíos
+# Use default values if empty
 [ -z "$PACKAGE_NAME" ] && PACKAGE_NAME="mypackage"
 [ -z "$VERSION" ] && VERSION="1.0"
 [ -z "$RELEASE" ] && RELEASE="1"
-[ -z "$SUMMARY" ] && SUMMARY="Paquete binario generado desde directorio"
+[ -z "$SUMMARY" ] && SUMMARY="Binary package generated from directory"
 [ -z "$LICENSE" ] && LICENSE="MIT"
 [ -z "$ARCH" ] && ARCH="noarch"
 [ -z "$DESCRIPTION" ] && DESCRIPTION="$SUMMARY"
 
-# Crea un directorio temporal para BUILDROOT
+# Create a temporary BUILDROOT directory
 BUILDROOT="$RPMBUILD_DIR/BUILDROOT/$PACKAGE_NAME-$VERSION-$RELEASE.$ARCH"
 mkdir -p "$BUILDROOT"
 
-# Copia todos los archivos del directorio de entrada a BUILDROOT
+# Copy all files from input directory to BUILDROOT
 cp -r "$INPUT_DIR"/* "$BUILDROOT"/
-# Excluye metadata.txt y scripts de mantenimiento si existen
+# Exclude metadata.txt and maintenance scripts if they exist
 for file in metadata.txt preinst postinst preun postun; do
     [ -f "$BUILDROOT/$file" ] && rm "$BUILDROOT/$file"
 done
 
-# Asegura permisos ejecutables en archivos binarios
+# Ensure executable permissions for binaries
 find "$BUILDROOT" -type f -path "*/bin/*" -exec chmod 755 {} \;
 
-# Detecta scripts de mantenimiento
+# Detect maintenance scripts
 PREINST=""
 POSTINST=""
 PREUN=""
@@ -75,10 +75,9 @@ POSTUN=""
 [ -f "$INPUT_DIR/preun" ] && PREUN=$(cat "$INPUT_DIR/preun")
 [ -f "$INPUT_DIR/postun" ] && POSTUN=$(cat "$INPUT_DIR/postun")
 
-# Genera la sección %files dinámicamente con permisos específicos
+# Generate %files section dynamically with specific permissions
 FILES_SECTION=""
 if [ -n "$(ls -A "$BUILDROOT")" ]; then
-    # Usar find con una sola pasada y aplicar permisos condicionalmente
     FILES_SECTION=$(find "$BUILDROOT" -type f | while read -r file; do
         rel_path="${file#$BUILDROOT}"
         if [[ "$rel_path" =~ ^/.*bin/ ]]; then
@@ -89,7 +88,7 @@ if [ -n "$(ls -A "$BUILDROOT")" ]; then
     done)
 fi
 
-# Crea el archivo .spec
+# Create the .spec file
 SPEC_FILE="$RPMBUILD_DIR/SPECS/$PACKAGE_NAME.spec"
 cat << EOF > "$SPEC_FILE"
 Name: $PACKAGE_NAME
@@ -104,10 +103,10 @@ $( [ -n "$DEPENDS" ] && echo "Requires: $DEPENDS" )
 $DESCRIPTION
 
 %prep
-# No hay preparación, usamos binarios directamente
+# No preparation needed, using binaries directly
 
 %build
-# No hay compilación
+# No build step
 
 %install
 rm -rf %{buildroot}/*
@@ -123,24 +122,24 @@ $( [ -n "$PREUN" ] && echo "%preun" && echo "$PREUN" )
 $( [ -n "$POSTUN" ] && echo "%postun" && echo "$POSTUN" )
 
 %changelog
-* $(LC_TIME=C date "+%a %b %d %Y") Grok 3 <grok@xai.com> - $VERSION-$RELEASE
-- Paquete binario generado automáticamente con GUI
+* $(LC_TIME=C date "+%a %b %d %Y") Juan Madrid <ecmadrid@github> - $VERSION-$RELEASE
+- Binary package generated automatically with GUI support
 EOF
 
-# Construye el RPM
+# Build the RPM
 rpmbuild -bb "$SPEC_FILE"
 
-# Mueve el RPM generado al directorio actual
+# Move the generated RPM to the current directory
 RPM_FILE="$RPMBUILD_DIR/RPMS/$ARCH/$PACKAGE_NAME-$VERSION-$RELEASE.$ARCH.rpm"
 if [ -f "$RPM_FILE" ]; then
     mv "$RPM_FILE" .
-    echo "RPM creado: $(basename "$RPM_FILE")"
+    echo "RPM created: $(basename "$RPM_FILE")"
 else
-    echo "Error al crear el RPM"
+    echo "Error: Failed to create RPM" >&2
     exit 1
 fi
 
-# Limpia
+# Cleanup
 rm -rf "$RPMBUILD_DIR/BUILDROOT" "$RPMBUILD_DIR/BUILD" "$RPMBUILD_DIR/SPECS/$PACKAGE_NAME.spec"
 
 exit 0
