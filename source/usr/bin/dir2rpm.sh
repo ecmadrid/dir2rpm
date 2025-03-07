@@ -7,7 +7,6 @@ export TEXTDOMAINDIR=/usr/share/locale
 # Check if a directory is provided
 if [ -z "$1" ]; then
     echo "$(gettext "Usage"): $0 $(gettext "<directory>")" >&2
-    echo "" >&2
     exit 1
 fi
 
@@ -25,11 +24,11 @@ DEPENDS=""
 # Check if the directory exists
 if [ ! -d "$INPUT_DIR" ]; then
     echo "$(gettext "Error: Directory") '$INPUT_DIR' $(gettext "does not exist")" >&2
-    echo "" >&2
     exit 1
 fi
 
-# Create rpmbuild structure if it doesn't exist
+# Create rpmbuild structure
+echo "Creating rpmbuild directories..." >&2
 mkdir -p "$RPMBUILD_DIR"/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
 
 # Read metadata from metadata.txt (if exists)
@@ -56,9 +55,11 @@ fi
 
 # Create a temporary BUILDROOT directory
 BUILDROOT="$RPMBUILD_DIR/BUILDROOT/$PACKAGE_NAME-$VERSION-$RELEASE.$ARCH"
+echo "Setting up BUILDROOT: $BUILDROOT" >&2
 mkdir -p "$BUILDROOT"
 
-# Copy all files from input directory to BUILDROOT
+# Copy files to BUILDROOT
+echo "Copying files from $INPUT_DIR to $BUILDROOT..." >&2
 cp -r "$INPUT_DIR"/* "$BUILDROOT"/
 for file in metadata.txt preinst postinst preun postun; do
     [ -f "$BUILDROOT/$file" ] && rm "$BUILDROOT/$file"
@@ -77,6 +78,7 @@ POSTUN=""
 
 FILES_SECTION=""
 if [ -n "$(ls -A "$BUILDROOT")" ]; then
+    echo "Generating %files section..." >&2
     FILES_SECTION=$(find "$BUILDROOT" -type f | while read -r file; do
         rel_path="${file#$BUILDROOT}"
         if [[ "$rel_path" =~ ^/.*bin/ ]]; then
@@ -85,9 +87,12 @@ if [ -n "$(ls -A "$BUILDROOT")" ]; then
             echo "%attr(644,root,root) $rel_path"
         fi
     done)
+else
+    echo "Warning: BUILDROOT is empty!" >&2
 fi
 
 SPEC_FILE="$RPMBUILD_DIR/SPECS/$PACKAGE_NAME.spec"
+echo "Creating spec file: $SPEC_FILE" >&2
 cat << EOF > "$SPEC_FILE"
 Name: $PACKAGE_NAME
 Version: $VERSION
@@ -115,6 +120,8 @@ cp -r $BUILDROOT/* %{buildroot}/
 $FILES_SECTION
 /usr/share/locale/en_US/LC_MESSAGES/dir2rpm.mo
 /usr/share/locale/es_ES/LC_MESSAGES/dir2rpm.mo
+/usr/share/locale/en_US/LC_MESSAGES/dir2rpm.qm
+/usr/share/locale/es_ES/LC_MESSAGES/dir2rpm.qm
 
 $( [ -n "$PREINST" ] && echo "%pre" && echo "$PREINST" )
 $( [ -n "$POSTINST" ] && echo "%post" && echo "$POSTINST" )
@@ -126,17 +133,32 @@ $( [ -n "$POSTUN" ] && echo "%postun" && echo "$POSTUN" )
 - Binary package generated automatically with GUI support
 EOF
 
-rpmbuild -bb "$SPEC_FILE"
+echo "Running rpmbuild..." >&2
+rpmbuild -bb "$SPEC_FILE" 2> rpmbuild_errors.log
+RPMBUILD_EXIT=$?
+
+if [ $RPMBUILD_EXIT -ne 0 ]; then
+    echo "$(gettext "Error: Failed to create RPM")" >&2
+    echo "rpmbuild errors:" >&2
+    cat rpmbuild_errors.log >&2
+    rm -f rpmbuild_errors.log
+    exit 1
+fi
 
 RPM_FILE="$RPMBUILD_DIR/RPMS/$ARCH/$PACKAGE_NAME-$VERSION-$RELEASE.$ARCH.rpm"
+echo "Checking for RPM at: $RPM_FILE" >&2
 if [ -f "$RPM_FILE" ]; then
+    echo "Moving RPM to current directory..." >&2
     mv "$RPM_FILE" .
     echo "$(gettext "RPM created"): $(basename "$RPM_FILE")"
 else
     echo "$(gettext "Error: Failed to create RPM")" >&2
+    echo "RPM file not found at: $RPM_FILE" >&2
     exit 1
 fi
 
-rm -rf "$RPMBUILD_DIR/BUILDROOT" "$RPMBUILD_DIR/BUILD" "$RPMBUILD_DIR/SPECS/$PACKAGE_NAME.spec"
+# Clean up after moving the RPM
+echo "Cleaning up temporary files..." >&2
+rm -rf "$RPMBUILD_DIR/BUILDROOT" "$RPMBUILD_DIR/BUILD" "$RPMBUILD_DIR/SPECS/$PACKAGE_NAME.spec" rpmbuild_errors.log
 
 exit 0

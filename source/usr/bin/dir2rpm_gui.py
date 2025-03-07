@@ -36,7 +36,7 @@ class Dir2RPMGUI(QMainWindow):
     def initUI(self):
         self.setWindowTitle(QCoreApplication.translate("Dir2RPMGUI", "dir2rpm - Create RPMs Easily"))
         print(f"Title set to: {self.windowTitle()}")
-        self.setGeometry(100, 100, 600, 500)
+        self.setGeometry(100, 100, 600, 600)
 
         widget = QWidget()
         self.setCentralWidget(widget)
@@ -74,6 +74,11 @@ class Dir2RPMGUI(QMainWindow):
         self.summary_label = QLabel(QCoreApplication.translate("Dir2RPMGUI", "Summary:"))
         self.summary_input = QLineEdit(QCoreApplication.translate("Dir2RPMGUI", "Binary package generated from directory"))
         form_layout.addRow(self.summary_label, self.summary_input)
+
+        # Description
+        self.description_label = QLabel(QCoreApplication.translate("Dir2RPMGUI", "Description:"))
+        self.description_input = QTextEdit(QCoreApplication.translate("Dir2RPMGUI", "Binary package generated from directory"))
+        form_layout.addRow(self.description_label, self.description_input)
 
         # Depends
         self.depends_label = QLabel(QCoreApplication.translate("Dir2RPMGUI", "Depends:"))
@@ -127,6 +132,7 @@ class Dir2RPMGUI(QMainWindow):
             f"Version: {self.version_input.text()}\n"
             f"Release: {self.release_input.text()}\n"
             f"Summary: {self.summary_input.text()}\n"
+            f"Description:\n{self.description_input.toPlainText()}\n"
         )
         if self.depends_input.text():
             metadata += f"Depends: {self.depends_input.text()}\n"
