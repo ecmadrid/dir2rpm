@@ -79,10 +79,18 @@ mkdir -p "$BUILDROOT"
 
 # Copy files to BUILDROOT, excluding metadata and scripts
 echo "Copying files from $INPUT_DIR to $BUILDROOT..." >&2
-rsync -av --exclude='metadata.txt' --exclude='preinst' --exclude='postinst' --exclude='preun' --exclude='postun' "$INPUT_DIR/" "$BUILDROOT/"
+rsync -av --exclude='metadata.txt' --exclude='preinst' --exclude='postinst' --exclude='preun' --exclude='postun' --exclude='*.spec' "$INPUT_DIR/" "$BUILDROOT/"
 
 # Set executable permissions for files in bin directories
 find "$BUILDROOT" -type f -path "*/bin/*" -exec chmod 755 {} \;
+# Binarios
+find "$BUILDROOT" -type f -path "*/bin/*" -exec chmod 755 {} \;
+find "$BUILDROOT" -type f -path "*/bin/*" -exec chcon -t bin_t {} \;
+# Bibliotecas
+find "$BUILDROOT" -type f -path "*/lib/*" -exec chmod 644 {} \;
+find "$BUILDROOT" -type f -path "*/lib/*" -exec chcon -t lib_t {} \;
+find "$BUILDROOT" -type f -path "*/lib64/*" -exec chmod 644 {} \;
+find "$BUILDROOT" -type f -path "*/lib64/*" -exec chcon -t lib_t {} \;
 
 # Read scripts (if exist)
 PREINST=""

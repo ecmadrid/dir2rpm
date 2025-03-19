@@ -1,9 +1,8 @@
 Name: dir2rpm
-Version: 1.0
+Version: 2.1
 Release: 1
-Summary: Crea un paquete rpm binario instalable desde un directorio
+Summary: Binary package generated from directory
+Description: Binary package generated from directory
+Vendor: Juan Sánchez <contact@xanmian.com>
 License: MIT
 Arch: noarch
-Description: Crea un paquete rpm binario instalable desde un directorio
-Depends: bash, rpm-build, python3, python3-qt5
-Vendor: xAI & Juan Sánchez <contact@xanmian.com>
