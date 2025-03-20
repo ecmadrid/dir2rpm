@@ -1,5 +1,5 @@
 Name: dir2rpm
-Version: 2.1
+Version: 3.2
 Release: 1
 Summary: Binary package generated from directory
 Description: Binary package generated from directory

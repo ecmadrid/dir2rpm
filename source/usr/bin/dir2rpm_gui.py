@@ -1,4 +1,4 @@
-import sys
+import sys  # Necesario para sys.argv y sys.exit
 import os
 import subprocess
 import glob
@@ -103,6 +103,7 @@ class Dir2RPMWindow(QMainWindow):
         self.license.addItems(["MIT", "GPL", "Apache", "BSD"])
         self.arch = QComboBox()
         self.arch.addItems(["noarch", "x86_64", "i386", "arm"])
+        self.depends = QLineEdit()  # Nueva entrada para dependencias
         
         meta_layout.addWidget(QLabel("Nombre del Paquete:"))
         meta_layout.addWidget(self.package_name)
@@ -120,6 +121,8 @@ class Dir2RPMWindow(QMainWindow):
         meta_layout.addWidget(self.license)
         meta_layout.addWidget(QLabel("Arquitectura:"))
         meta_layout.addWidget(self.arch)
+        meta_layout.addWidget(QLabel("Dependencias (separadas por comas):"))  # Etiqueta para Depends
+        meta_layout.addWidget(self.depends)  # Añadimos el campo de dependencias
         meta_layout.addStretch()
         
         scripts_widget = QWidget()
@@ -204,6 +207,7 @@ class Dir2RPMWindow(QMainWindow):
         author = self.author.text() or "xAI"
         license = self.license.currentText() or "MIT"
         arch = self.arch.currentText() or "noarch"
+        depends = self.depends.text()  # Obtener las dependencias
         preinst = self.preinst.toPlainText()
         postinst = self.postinst.toPlainText()
         preun = self.preun.toPlainText()
@@ -216,7 +220,11 @@ Summary: {summary}
 License: {license}
 Vendor: {author}
 BuildArch: {arch}
-
+"""
+        if depends:
+            spec_content += f"Requires: {depends}\n"  # Añadir Requires si hay dependencias
+        
+        spec_content += f"""
 %description
 {description}
 
@@ -289,6 +297,8 @@ mkdir -p %{{buildroot}}
             metadata.append(f"License: {self.license.currentText()}")
         if self.arch.currentText():
             metadata.append(f"Arch: {self.arch.currentText()}")
+        if self.depends.text():  # Añadir dependencias al metadata
+            metadata.append(f"Depends: {self.depends.text()}")
         
         if metadata:
             metadata_path = os.path.join(input_dir, "metadata.txt")
